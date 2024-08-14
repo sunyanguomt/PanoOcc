@@ -44,3 +44,8 @@ pip install ninja
 sudo apt-get install libgl1-mesa-dev
 pip install setuptools==56.1.0
 ```
+
+**Sparse Part**
+```shell
+pip install spconv-cu113
+```

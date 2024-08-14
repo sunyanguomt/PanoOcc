@@ -220,6 +220,10 @@ def flatten_probas(probas, labels, ignore=None):
         #3D segmentation
         B, C, L, H, W = probas.size()
         probas = probas.contiguous().view(B, C, L, H*W)
+    elif probas.dim() == 2:
+        N, C = probas.size()
+        probas = probas.T.contiguous().view(1, C, 1, N)
+
     B, C, H, W = probas.size()
     probas = probas.permute(0, 2, 3, 1).contiguous().view(-1, C)  # B * H * W, C = P, C
     labels = labels.view(-1)

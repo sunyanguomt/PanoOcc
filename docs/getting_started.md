@@ -36,3 +36,8 @@ You can evaluate the F-score at the same time by adding `--eval_fscore`.
 # Also need to convert to submission format, remind to add submission.json in the folder
 python ./tools/test_submit.py
 ```
+
+**d. Train with 8 GPUs for sparse convolution.**
+```shell
+./tools/dist_train.sh ./projects/configs/PanoOcc/Panoptic/sparse/PanoOcc_sparse_small.py 8
+```

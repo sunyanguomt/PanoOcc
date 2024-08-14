@@ -71,3 +71,51 @@ class MLP(torch.nn.Module):
             x = layer(x)
                 
         return x
+    
+@TRANSFORMER_LAYER_SEQUENCE.register_module()
+class SimpleMLPDecoder(BaseModule):
+
+    def __init__(self,
+                 num_classes,
+                 out_dim=64,
+                 ):
+        super().__init__()
+        self.num_classes = num_classes
+        self.out_dim = out_dim
+    
+        self.mlp_decoder = MLP(dim_x=self.out_dim,act_fn='softplus',layer_size=2)
+        self.classifier = nn.Linear(self.out_dim, self.num_classes)
+                
+    def forward(self, inputs):
+        # z h w
+        voxel_point = inputs.permute(0, 2, 3, 4, 1).reshape(1,-1,self.out_dim)
+        voxel_point_feat = self.mlp_decoder(voxel_point)
+        point_cls = self.classifier(voxel_point_feat)
+
+        voxel_point_cls = point_cls.reshape(1,inputs.shape[2],inputs.shape[3],inputs.shape[4],-1).permute(0,4,1,2,3)
+        return voxel_point_cls
+
+
+@TRANSFORMER_LAYER_SEQUENCE.register_module()
+class SparseMLPDecoder(BaseModule):
+
+    def __init__(self,
+                 num_classes,
+                 out_dim=64,
+                 ):
+        super().__init__()
+        self.num_classes = num_classes
+        self.out_dim = out_dim
+    
+        self.mlp_decoder = MLP(dim_x=self.out_dim,act_fn='softplus',layer_size=2)
+        self.classifier = nn.Linear(self.out_dim, self.num_classes)
+                
+    def forward(self, inputs):
+
+        feats = inputs.features
+        feats = self.mlp_decoder(feats)
+        logit = self.classifier(feats)
+
+        inputs = inputs.replace_feature(logit)
+
+        return inputs

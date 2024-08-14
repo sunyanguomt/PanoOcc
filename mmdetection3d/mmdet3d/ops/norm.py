@@ -54,9 +54,13 @@ class NaiveSyncBatchNorm1d(nn.BatchNorm1d):
     def forward(self, input):
         assert input.dtype == torch.float32, \
             f'input should be in float32 type, got {input.dtype}'
-        if dist.get_world_size() == 1 or not self.training:
+        if not dist.is_initialized() or dist.get_world_size() == 1 or not self.training:
             return super().forward(input)
         assert input.shape[0] > 0, 'SyncBN does not support empty inputs'
+        dim_2 = input.dim() == 2
+        if dim_2:
+            input.unsqueeze_(2)
+
         C = input.shape[1]
         mean = torch.mean(input, dim=[0, 2])
         meansqr = torch.mean(input * input, dim=[0, 2])
@@ -75,7 +79,10 @@ class NaiveSyncBatchNorm1d(nn.BatchNorm1d):
         bias = self.bias - mean * scale
         scale = scale.reshape(1, -1, 1)
         bias = bias.reshape(1, -1, 1)
-        return input * scale + bias
+        input = input * scale + bias
+        if dim_2:
+            input = input.squeeze(2)
+        return input
 
 
 @NORM_LAYERS.register_module('naiveSyncBN2d')

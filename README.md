@@ -8,8 +8,10 @@
 
 
 # Catalog
+- [ ] Occupancy Flow
+- [ ] Panoptic Refine
 - [ ] 3D Panoptic Segmentation (Waymo)
-- [ ] Sparse Decoder, Panoptic Refine
+- [x] Sparse Decoder
 - [x] 3D Panoptic Segmentation (nuScenes)
 - [x] Occupancy Prediction (Occ3D-nuScenes)
 - [x] Initialize
@@ -58,11 +60,12 @@ Comprehensive modeling of the surrounding 3D world is key to the success of auto
 If this work is helpful for your research, please consider citing the following BibTeX entry.
 
 ```
-@article{wang2023panoocc,
-  title={PanoOcc: Unified Occupancy Representation for Camera-based 3D Panoptic Segmentation},
+@inproceedings{wang2024panoocc,
+  title={Panoocc: Unified occupancy representation for camera-based 3d panoptic segmentation},
   author={Wang, Yuqi and Chen, Yuntao and Liao, Xingyu and Fan, Lue and Zhang, Zhaoxiang},
-  journal={arXiv preprint arXiv:2306.10013},
-  year={2023}
+  booktitle={Proceedings of the IEEE/CVF conference on computer vision and pattern recognition},
+  pages={17158--17168},
+  year={2024}
 }
 ```
 
