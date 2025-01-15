@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .overwrite_spconv.write_spconv2 import register_spconv2
+from .overwrite_spconv import register_spconv2
 
 try:
     import spconv

@@ -112,7 +112,8 @@ class VoteFusion(nn.Module):
                     [delta_u, delta_v,
                      torch.zeros_like(delta_v)], dim=-1).view(-1, 3)
                 imvote = imvote * z_cam.reshape(-1, 1)
-                imvote = imvote @ torch.inverse(depth2img.t())
+                # imvote = imvote @ torch.inverse(depth2img.t())
+                imvote = imvote @ torch.inverse(depth2img.t().to('cpu')).musa()
 
                 # apply transformation to lifted imvotes
                 imvote = apply_3d_transformation(

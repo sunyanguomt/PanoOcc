@@ -73,22 +73,22 @@ def custom_train_detector(model,
         # Sets the `find_unused_parameters` parameter in
         # torch.nn.parallel.DistributedDataParallel
         model = MMDistributedDataParallel(
-            model.cuda(),
-            device_ids=[torch.cuda.current_device()],
+            model.musa(),
+            device_ids=[torch.musa.current_device()],
             broadcast_buffers=False,
             find_unused_parameters=find_unused_parameters)
         if eval_model is not None:
             eval_model = MMDistributedDataParallel(
-                eval_model.cuda(),
-                device_ids=[torch.cuda.current_device()],
+                eval_model.musa(),
+                device_ids=[torch.musa.current_device()],
                 broadcast_buffers=False,
                 find_unused_parameters=find_unused_parameters)
     else:
         model = MMDataParallel(
-            model.cuda(cfg.gpu_ids[0]), device_ids=cfg.gpu_ids)
+            model.musa(cfg.gpu_ids[0]), device_ids=cfg.gpu_ids)
         if eval_model is not None:
             eval_model = MMDataParallel(
-                eval_model.cuda(cfg.gpu_ids[0]), device_ids=cfg.gpu_ids)
+                eval_model.musa(cfg.gpu_ids[0]), device_ids=cfg.gpu_ids)
 
 
     # build runner
@@ -177,6 +177,8 @@ def custom_train_detector(model,
         eval_cfg['jsonfile_prefix'] = osp.join('val', cfg.work_dir, time.ctime().replace(' ','_').replace(':','_'))
         eval_hook = CustomDistEvalHook if distributed else EvalHook
         runner.register_hook(eval_hook(val_dataloader, **eval_cfg))
+        # runner.register_hook(
+        #     eval_hook(val_dataloader, **eval_cfg), priority='LOW')
 
     # user-defined hooks
     if cfg.get('custom_hooks', None):

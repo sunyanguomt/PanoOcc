@@ -230,8 +230,8 @@ def main():
         outputs = single_gpu_test(model, data_loader, args.show, args.show_dir)
     else:
         model = MMDistributedDataParallel(
-            model.cuda(),
-            device_ids=[torch.cuda.current_device()],
+            model.musa(),
+            device_ids=[torch.musa.current_device()],
             broadcast_buffers=False)
         outputs,lidar_seg_results = custom_multi_gpu_test(model, data_loader, args.tmpdir,
                                         args.gpu_collect)

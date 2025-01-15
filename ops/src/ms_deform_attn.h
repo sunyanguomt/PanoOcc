@@ -16,6 +16,10 @@
 #include "cuda/ms_deform_attn_cuda.h"
 #endif
 
+#ifdef WITH_MUSA
+#include "musa/ms_deform_attn_musa.h"
+#endif
+
 
 at::Tensor
 ms_deform_attn_forward(
@@ -35,6 +39,12 @@ ms_deform_attn_forward(
         AT_ERROR("Not compiled with GPU support");
 #endif
     }
+    else if (value.device().is_privateuseone())
+    {
+        return ms_deform_attn_musa_forward(
+            value, spatial_shapes, level_start_index, sampling_loc, attn_weight, im2col_step);
+    }
+    
     AT_ERROR("Not implemented on the CPU");
 }
 
@@ -56,7 +66,12 @@ ms_deform_attn_backward(
 #else
         AT_ERROR("Not compiled with GPU support");
 #endif
+    }else if (value.device().is_privateuseone())
+    {
+        return ms_deform_attn_musa_backward(
+            value, spatial_shapes, level_start_index, sampling_loc, attn_weight, grad_output, im2col_step);
     }
+    
     AT_ERROR("Not implemented on the CPU");
 }
 

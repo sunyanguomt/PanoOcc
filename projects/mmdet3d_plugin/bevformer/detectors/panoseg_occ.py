@@ -286,6 +286,12 @@ class PanoSegOcc(MVXTwoStageDetector):
         return losses
 
     def forward_test(self, img_metas, img=None, points=None,pts_semantic_mask=None, dense_occupancy=None, **kwargs):
+        from mmcv.runner import get_dist_info
+        rank, world_size = get_dist_info()
+        img_metas, _ = scatter_kwargs(img_metas, {}, [rank])
+        img_metas = img_metas[0]
+        img, _ = scatter_kwargs(img, {}, [rank])
+        img = img[0]
         for var, name in [(img_metas, 'img_metas')]:
             if not isinstance(var, list):
                 raise TypeError('{} must be a list, but got {}'.format(

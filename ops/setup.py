@@ -10,10 +10,19 @@ import os
 import glob
 
 import torch
+import torch_musa
 
 from torch.utils.cpp_extension import CUDA_HOME
 from torch.utils.cpp_extension import CppExtension
 from torch.utils.cpp_extension import CUDAExtension
+
+from torch_musa.utils.musa_extension import MUSA_HOME, MUSAExtension,BuildExtension
+
+if os.getenv('FORCE_MUSA', '0') == '1':
+    from torch_musa.utils.musa_extension import BuildExtension
+    build_extention = BuildExtension
+else:
+    build_extention = torch.utils.cpp_extension.BuildExtension
 
 from setuptools import find_packages
 from setuptools import setup
@@ -27,6 +36,7 @@ def get_extensions():
     main_file = glob.glob(os.path.join(extensions_dir, "*.cpp"))
     source_cpu = glob.glob(os.path.join(extensions_dir, "cpu", "*.cpp"))
     source_cuda = glob.glob(os.path.join(extensions_dir, "cuda", "*.cu"))
+    source_musa = glob.glob(os.path.join(extensions_dir, "musa", "*.mu"))
 
     sources = main_file + source_cpu
     extension = CppExtension
@@ -42,6 +52,16 @@ def get_extensions():
             "-D__CUDA_NO_HALF_OPERATORS__",
             "-D__CUDA_NO_HALF_CONVERSIONS__",
             "-D__CUDA_NO_HALF2_OPERATORS__",
+        ]
+    elif (torch_musa.is_available() and MUSA_HOME is not None) or os.getenv('FORCE_MUSA', 0) == 1:
+        extension = MUSAExtension
+        sources += source_musa
+        define_macros += [("WITH_MUSA", None)]
+        extra_compile_args["mvcc"] = [
+            "-DCUDA_HAS_FP16=1",
+            "-D__MUSA_NO_HALF_OPERATORS__",
+            "-D__MUSA_NO_HALF_CONVERSIONS__",
+            "-D__MUSA_NO_HALF2_OPERATORS__",
         ]
     else:
         raise NotImplementedError('Cuda is not availabel')
@@ -67,5 +87,5 @@ setup(
     description="PyTorch Wrapper for CUDA Functions of Multi-Scale Deformable Attention",
     packages=find_packages(exclude=("configs", "tests",)),
     ext_modules=get_extensions(),
-    cmdclass={"build_ext": torch.utils.cpp_extension.BuildExtension},
+    cmdclass={"build_ext": build_extention},
 )

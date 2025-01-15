@@ -6,8 +6,12 @@ import sys
 import torch
 import warnings
 from os import path as osp
-from torch.utils.cpp_extension import (BuildExtension, CppExtension,
-                                       CUDAExtension)
+if os.getenv('FORCE_MUSA', '0') == '1':
+    from torch_musa.utils.musa_extension import BuildExtension
+else:
+    from torch.utils.cpp_extension import BuildExtension
+    from torch.utils.cpp_extension import CppExtension, CUDAExtension
+
 
 
 def readme():
@@ -50,6 +54,26 @@ def make_cuda_ext(name,
             '-D__CUDA_NO_HALF2_OPERATORS__',
         ]
         sources += sources_cuda
+    elif os.getenv('FORCE_MUSA', '0') == '1':
+        from torch_musa.utils.musa_extension import MUSAExtension
+        sources += sources_cuda
+        sources = [s.replace('src', 'src_musa') for s in sources]
+        sources_new = []
+        for source in sources:
+            if source.endswith('.cu'):
+                source_new = source.split('.')[0] + '.mu'
+            else:
+                source_new = source
+            sources_new.append(source_new)
+        sources = sources_new
+        extra_include_path = [s.replace('include', 'include_musa') for s in extra_include_path]
+
+        from torch_musa.testing import get_musa_arch
+        define_macros += [('MMCV_WITH_MUSA', None),
+                            ('MUSA_ARCH', str(get_musa_arch()))]
+        os.environ['MUSA_ARCH'] = str(get_musa_arch())
+        extension = MUSAExtension
+
     else:
         print('Compiling {} without CUDA'.format(name))
         extension = CppExtension
@@ -241,7 +265,7 @@ if __name__ == '__main__':
                     'src/maxpool.cc',
                     'src/maxpool_cuda.cu',
                 ],
-                extra_args=['-w', '-std=c++14']),
+                extra_args=['-w', '-std=c++17']),
             make_cuda_ext(
                 name='iou3d_cuda',
                 module='mmdet3d.ops.iou3d',

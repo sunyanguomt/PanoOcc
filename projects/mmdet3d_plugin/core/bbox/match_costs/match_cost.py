@@ -24,7 +24,7 @@ class BBox3DL1Cost(object):
         Returns:
             torch.Tensor: bbox_cost value with weight
         """
-        bbox_cost = torch.cdist(bbox_pred, gt_bboxes, p=1)
+        bbox_cost = torch.cdist(bbox_pred.to('cpu'), gt_bboxes.to('cpu'), p=1).musa()
         return bbox_cost * self.weight
 
 @mmcv.jit(derivate=True, coderize=True)

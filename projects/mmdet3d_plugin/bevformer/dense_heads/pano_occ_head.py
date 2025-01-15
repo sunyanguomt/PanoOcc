@@ -404,7 +404,7 @@ class PanoOccHead(BaseModule):
         #     new_pred_semantics = pc_semantic.copy()
 
         #     if pred_foreground.sum()>0:
-        #         pc = grid[pred_foreground==1][:,:3].cuda()
+        #         pc = grid[pred_foreground==1][:,:3].musa()
         #         box_valid = bbox_3d.enlarged_box(2.0).points_in_boxes(pc).cpu().numpy()>-1
         #         if box_valid.sum()>0:
         #             remove_x = pred_foreground.nonzero()[1][box_valid==0]

@@ -1,11 +1,13 @@
 from __future__ import division
 
+import sys
 import argparse
 import copy
 import mmcv
 import os
 import time
 import torch
+import torch_musa
 import warnings
 from mmcv import Config, DictAction
 from mmcv.runner import get_dist_info, init_dist
@@ -95,6 +97,9 @@ def parse_args():
 def main():
     args = parse_args()
 
+    sys.path.insert(0, '/data/yanguo.sun/changan/PanoOcc')
+    torch.multiprocessing.set_start_method('fork')
+
     cfg = Config.fromfile(args.config)
     if args.cfg_options is not None:
         cfg.merge_from_dict(args.cfg_options)
@@ -133,7 +138,7 @@ def main():
         torch.backends.cudnn.benchmark = True
     # set tf32
     if cfg.get('close_tf32', False):
-        torch.backends.cuda.matmul.allow_tf32 = False
+        torch.backends.musa.matmul.allow_tf32 = False
         torch.backends.cudnn.allow_tf32 = False
 
     # work_dir is determined in this priority: CLI > segment in file > filename
@@ -162,7 +167,8 @@ def main():
         distributed = False
     else:
         distributed = True
-        init_dist(args.launcher, **cfg.dist_params)
+        # init_dist(args.launcher, **cfg.dist_params)
+        init_dist(args.launcher)
         # re-set gpu_ids with distributed training mode
         _, world_size = get_dist_info()
         cfg.gpu_ids = range(world_size)
@@ -188,13 +194,13 @@ def main():
     # environment info and seed, which will be logged
     meta = dict()
     # log env info
-    env_info_dict = collect_env()
-    env_info = '\n'.join([(f'{k}: {v}') for k, v in env_info_dict.items()])
-    dash_line = '-' * 60 + '\n'
-    logger.info('Environment info:\n' + dash_line + env_info + '\n' +
-                dash_line)
-    meta['env_info'] = env_info
-    meta['config'] = cfg.pretty_text
+    # env_info_dict = collect_env()
+    # env_info = '\n'.join([(f'{k}: {v}') for k, v in env_info_dict.items()])
+    # dash_line = '-' * 60 + '\n'
+    # logger.info('Environment info:\n' + dash_line + env_info + '\n' +
+    #             dash_line)
+    # meta['env_info'] = env_info
+    # meta['config'] = cfg.pretty_text
 
     # log some basic info
     logger.info(f'Distributed training: {distributed}')

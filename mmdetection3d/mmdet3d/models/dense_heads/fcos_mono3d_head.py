@@ -713,7 +713,8 @@ class FCOSMono3DHead(AnchorFreeMono3DHead):
 
         viewpad = torch.eye(4, dtype=points2D.dtype, device=points2D.device)
         viewpad[:view.shape[0], :view.shape[1]] = points2D.new_tensor(view)
-        inv_viewpad = torch.inverse(viewpad).transpose(0, 1)
+        # inv_viewpad = torch.inverse(viewpad).transpose(0, 1)
+        inv_viewpad = torch.inverse(viewpad.to('cpu')).musa().transpose(0, 1)
 
         # Do operation in homogenous coordinates.
         nbr_points = unnorm_points2D.shape[0]

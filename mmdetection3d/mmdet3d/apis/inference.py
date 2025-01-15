@@ -33,7 +33,7 @@ def convert_SyncBN(config):
                 convert_SyncBN(config[item])
 
 
-def init_model(config, checkpoint=None, device='cuda:0'):
+def init_model(config, checkpoint=None, device='musa:0'):
     """Initialize a model from config file, which could be a 3D detector or a
     3D segmentor.
 
@@ -104,7 +104,7 @@ def inference_detector(model, pcd):
         seg_fields=[])
     data = test_pipeline(data)
     data = collate([data], samples_per_gpu=1)
-    if next(model.parameters()).is_cuda:
+    if next(model.parameters()).is_musa:
         # scatter to specified GPU
         data = scatter(data, [device.index])[0]
     else:
@@ -177,7 +177,7 @@ def inference_multi_modality_detector(model, pcd, image, ann_file):
         data['img_metas'][0].data['depth2img'] = depth2img
 
     data = collate([data], samples_per_gpu=1)
-    if next(model.parameters()).is_cuda:
+    if next(model.parameters()).is_musa:
         # scatter to specified GPU
         data = scatter(data, [device.index])[0]
     else:
@@ -237,7 +237,7 @@ def inference_mono_3d_detector(model, image, ann_file):
     data = test_pipeline(data)
 
     data = collate([data], samples_per_gpu=1)
-    if next(model.parameters()).is_cuda:
+    if next(model.parameters()).is_musa:
         # scatter to specified GPU
         data = scatter(data, [device.index])[0]
     else:
@@ -277,7 +277,7 @@ def inference_segmentor(model, pcd):
         seg_fields=[])
     data = test_pipeline(data)
     data = collate([data], samples_per_gpu=1)
-    if next(model.parameters()).is_cuda:
+    if next(model.parameters()).is_musa:
         # scatter to specified GPU
         data = scatter(data, [device.index])[0]
     else:
